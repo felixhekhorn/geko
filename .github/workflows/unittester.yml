@@ -1,0 +1,29 @@
+name: Python unit tester
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        required: true
+        description: >
+          Python version used to test the package
+
+jobs:
+  test:
+    name: 🔬 Test (🐍 ${{ inputs.python-version }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python ${{ inputs.python-version }} 🐍
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: 'poetry'
+      - run: poetry install --with test
+      - name: Install task runner
+        run: pipx install poethepoet
+      - name: Test with pytest
+        run: poe test

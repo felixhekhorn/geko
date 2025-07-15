@@ -1,0 +1,14 @@
+name: Python unit tests
+
+on: push
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+      fail-fast: false
+
+    uses: ./.github/workflows/unittester.yml
+    with:
+      python-version: ${{ matrix.python-version }}
