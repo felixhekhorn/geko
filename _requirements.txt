@@ -1,0 +1,5 @@
+eko==0.14.6
+pandas
+matplotlib
+meson
+ninja
