@@ -22,10 +22,10 @@ repos:
     rev: v0.12.2
     hooks:
       # Run the linter.
-      - id: ruff
+      - id: ruff-check
         args: [ --fix ]
       # Sort imports
-      - id: ruff
+      - id: ruff-check
         args: [ --select, I, --fix ]
       # Run the formatter.
       - id: ruff-format
