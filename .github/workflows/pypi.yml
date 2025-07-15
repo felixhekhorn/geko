@@ -10,7 +10,7 @@ env:
 
 jobs:
   publish:
-    name: 📦 PyPI (🐍 $PYVERSION)
+    name: 📦 PyPI (🐍 ${{ PYVERSION }})
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -21,10 +21,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install poetry
         run: pipx install poetry
-      - name: Set up Python $PYVERSION 🐍
+      - name: Set up Python ${{ PYVERSION }} 🐍
         uses: actions/setup-python@v5
         with:
-          python-version: $PYVERSION
+          python-version: ${{ PYVERSION }}
           cache: 'poetry'
       - run: poetry install --with test
       - name: Install task runner
