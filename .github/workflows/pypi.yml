@@ -1,0 +1,39 @@
+name: Deploy to PyPI
+
+on:
+  push:
+    tags:
+      - "*"
+
+env:
+    PYVERSION: 3.12
+
+jobs:
+  publish:
+    name: 📦 PyPI (🐍 $PYVERSION)
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/geko
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python $PYVERSION 🐍
+        uses: actions/setup-python@v5
+        with:
+          python-version: $PYVERSION
+          cache: 'poetry'
+      - run: poetry install --with test
+      - name: Install task runner
+        run: pipx install poethepoet
+      - name: Test with pytest
+        run: poe test
+      - name: Package the distribution
+        run: |
+          # package the pure python wheel
+          poetry build
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
