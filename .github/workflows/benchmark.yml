@@ -1,0 +1,38 @@
+name: Benchmark
+
+on:
+  push:
+    branches-ignore:
+      - "*"
+    tags:
+      - "*"
+  pull_request:
+    types:
+      - closed
+      - ready_for_review
+      - review_requested
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python 🐍
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+          cache: 'poetry'
+      - run: poetry install --with benchmark
+      - name: Run benchmark
+        run: |
+          cd benchmarks/
+          # generate objects
+          poetry run python run.py 0 -eko -geko
+          # compile GRV
+          poetry run python -m numpy.f2py -c -m grvphoton grvphoton.f
+          # compare
+          poetry run python compare.py 0 --df-grv
