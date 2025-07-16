@@ -16,6 +16,9 @@ dependencies = [
 
 [tool.poetry]
 
+[tool.poetry.group.dev]
+optional = true
+
 [tool.poetry.group.dev.dependencies]
 pdbpp = "^0.11.6"
 
@@ -35,12 +38,24 @@ matplotlib = "^3.5.1"
 meson = "^1.8"
 ninja = "^1.8"
 
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+Sphinx = "^7.0.0"
+sphinx-rtd-theme = "^3.0.0"
+sphinxcontrib-bibtex = "^2.4.1"
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poe.tasks]
 test = "pytest tests"
+docs = { "shell" = "cd docs; make html" }
+docs-view = { "shell" = "cd docs; make view" }
+docs-server = { "shell" = "cd docs; make server" }
+docs-clean = { "shell" = "cd docs; make clean" }
 
 [tool.pytest.ini_options]
 env = ["D:NUMBA_DISABLE_JIT=1"]

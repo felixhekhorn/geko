@@ -1,21 +1,16 @@
 r"""Point-like anomalous dimensions.
 
-Note that we adopt the normalization of [Moch:2001im], in particular we implement
+Note that we adopt the normalization of :cite:`Moch:2001im`, in particular we implement
 
 .. math::
     \delta_p^{-1} k_p
 
-This yields additional factors with respect to [Gluck:1991ee]:
+This yields additional factors with respect to :cite:`Gluck:1991ee`:
 
-- one (-1) for the Mellin definition of the anomalous dimension, see [Gluck:1991ee](Eq. 2.3)
+- one (-1) for the Mellin definition of the anomalous dimension, see :cite:`Gluck:1991ee` (Eq. 2.3)
 - one 2 for either the a_em and/or a_s definition
 
-The NC is factored both in [Moch:2001im] and [Gluck:1991ee].
-
-References
-----------
-- [Gluck:1991ee] https://inspirehep.net/literature/321270
-- [Moch:2001im] https://inspirehep.net/literature/564916
+The :math:`N_C` is factored both in :cite:`Moch:2001im` and :cite:`Gluck:1991ee`.
 """
 
 import numpy as np
@@ -25,17 +20,17 @@ from ekore.harmonics import cache as c
 
 
 def ns_as0(n: complex, _nf: int, _cache: np.ndarray, _is_disg: bool = True) -> complex:
-    """LO non-singlet contribution.
+    """|LO| non-singlet contribution.
 
-    Implements Eq. (2.9) of [Gluck:1991ee].
+    Implements Eq. (2.9) of :cite:`Gluck:1991ee`.
     """
     return -2.0 * 2.0 * (n**2 + n + 2.0) / (n * (n + 1.0) * (n + 2.0))
 
 
 def ns_as1_msbar(n: complex, nf: int, cache: np.ndarray) -> complex:
-    """NLO non-singlet contribution.
+    """|NLO| non-singlet contribution.
 
-    Implements Eq. (2.9) of [Gluck:1991ee].
+    Implements Eq. (2.9) of :cite:`Gluck:1991ee`.
     """
     S1 = c.get(c.S1, cache, n)
     S2 = c.get(c.S2, cache, n)
@@ -50,9 +45,9 @@ def ns_as1_msbar(n: complex, nf: int, cache: np.ndarray) -> complex:
 
 
 def ns_as1(n: complex, nf: int, cache: np.ndarray, is_disg: bool = True) -> complex:
-    """NLO non-singlet contribution.
+    """|NLO| non-singlet contribution.
 
-    Shift to DISγ using Eq. (4.20) of [Moch:2001im].
+    Shift to DISγ using Eq. (4.20) of :cite:`Moch:2001im`.
     """
     res = ns_as1_msbar(n, nf, cache)
     if is_disg:
@@ -73,17 +68,17 @@ def ns(
 def singlet_as0(
     n: complex, nf: int, cache: np.ndarray, is_disg: bool = True
 ) -> np.ndarray:
-    """LO non-singlet contribution.
+    """|LO| non-singlet contribution.
 
-    Implements Eq. (2.6) and (2.9) of [Gluck:1991ee].
+    Implements Eq. (2.6) and (2.9) of :cite:`Gluck:1991ee`.
     """
     return np.array([ns_as0(n, nf, cache, is_disg), 0.0], dtype=np.complex_)
 
 
 def gluon_as1_msbar(n: complex, _nf: int, _cache: np.ndarray) -> complex:
-    """NLO gluon contribution.
+    """|NLO| gluon contribution.
 
-    Implements Eq. (2.10) of [Gluck:1991ee]."""
+    Implements Eq. (2.10) of :cite:`Gluck:1991ee`."""
     num = 2 * n**6 + 4 * n**5 + n**4 - 10 * n**3 - 5 * n**2 - 4 * n - 4
     den = (n - 1) * n**3 * (n + 1) ** 3 * (n + 2)
     return CF * -2 * -4 * num / den
@@ -92,12 +87,12 @@ def gluon_as1_msbar(n: complex, _nf: int, _cache: np.ndarray) -> complex:
 def singlet_as1(
     n: complex, nf: int, cache: np.ndarray, is_disg: bool = True
 ) -> np.ndarray:
-    """NLO singlet contribution.
+    """|NLO| singlet contribution.
 
-    Implements Eq. (2.6) and (2.9) of [Gluck:1991ee].
-    Shift to DISγ using Eq. (4.20) of [Moch:2001im].
+    Implements Eq. (2.6) and (2.9) of :cite:`Gluck:1991ee`.
+    Shift to DISγ using Eq. (4.20) of :cite:`Moch:2001im`.
     """
-    # at NLO the quark sector is still the same
+    # at |NLO| the quark sector is still the same
     sing = ns_as1(n, nf, cache, is_disg)
     glue = gluon_as1_msbar(n, nf, cache)
     if is_disg:
@@ -116,9 +111,9 @@ def singlet(
 
 
 def dis_gamma_coeff_as0(n: complex, _nf: int, cache: np.ndarray) -> complex:
-    """LO DISγ F2 contribution.
+    """|LO| DISγ :math:`F_2` contribution.
 
-    Implements Eq. (5.8) of [Moch:2001im], in Mellin space.
+    Implements Eq. (5.8) of :cite:`Moch:2001im`, in Mellin space.
     """
     S1 = c.get(c.S1, cache, n)
     c2g = (

@@ -29,7 +29,7 @@ HEADER_EXT = ".json"
 
 
 def build_recipes(ep: EvolutionPoint, atlas: Atlas) -> list[Evolution]:
-    """Construct recipe for given EP."""
+    """Construct recipe for given |EP|."""
     recipes = []
     blocks = atlas.matched_path(ep)
     for block in blocks:
@@ -43,7 +43,7 @@ def build_recipes(ep: EvolutionPoint, atlas: Atlas) -> list[Evolution]:
 
 
 def build_all_recipes(evolgrid: list[EvolutionPoint], atlas: Atlas) -> list[Evolution]:
-    """Construct all recipes for all EPs."""
+    """Construct all recipes for all |EP|."""
     recipes = []
     for ep in evolgrid:
         recipes.extend(build_recipes(ep, atlas))
@@ -143,7 +143,7 @@ def load(path: pathlib.Path) -> dict[EvolutionPoint, np.ndarray]:
 
 
 def apply_pdf_paths(lhapdf_like, eko_path: pathlib.Path, pl_path: pathlib.Path) -> dict:
-    """Evolve PDF with eko + geko."""
+    """Evolve |PDF| with eko + geko."""
     # hadronic contributions
     evolved = None
     with eko.EKO.read(eko_path) as evolution_operator:

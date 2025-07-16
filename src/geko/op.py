@@ -28,7 +28,7 @@ _MELLIN_LIMIT = 100
 
 
 def ns_as0_exact(n: complex, a1: float, a0: float, nf: int) -> complex:
-    """LO non-singlet exact solution."""
+    """|LO| non-singlet exact solution."""
     cache = c.reset()
     gamma0 = gamma_ns((1, 0), _PID_NSP, n, nf, [0.0] * 7, True)[0]
     beta0 = beta_qcd((2, 0), nf)
@@ -41,7 +41,7 @@ def ns_as0_exact(n: complex, a1: float, a0: float, nf: int) -> complex:
 
 
 def singlet_as0_exact(n: complex, a1: float, a0: float, nf: int) -> np.ndarray:
-    """LO singlet exact solution."""
+    """|LO| singlet exact solution."""
     cache = c.reset()
     gamma0 = gamma_singlet((1, 0), n, nf, [0.0] * 7, True)[0]
     beta0 = beta_qcd((2, 0), nf)
@@ -83,7 +83,7 @@ def ns_iterate(
     # to turn a list of coefficients into an actual polynomial, we can write it as
     # ordinary scalar product with a list containing variable powers. (here variable = coupling)
     # `order_qcd` is in EKO language, i.e. it is counting powers of the QCD splitting kernels, i.e.
-    # 1 = as^1 = LO. However, `range` start from 0 up to, but not including the last - so we need to correct twice.
+    # 1 = as^1 = |LO|. However, `range` start from 0 up to, but not including the last - so we need to correct twice.
     pows = range(order_qcd - 1 + 1)
     # step 0 is separated
     as_half0_pow = np.power(as_half[0], pows)
@@ -233,7 +233,7 @@ def blowup(op: dict[int, np.ndarray], nf: int) -> np.ndarray:
         )
     # map raw elements to basis vectors
     ev = np.zeros((len(br.flavor_basis_pids), len(op[21])))
-    # The singlet coupling is Eq. 2.29 of [Moch:2001im],
+    # The singlet coupling is Eq. 2.29 of :cite:`Moch:2001im`,
     ev[basis.index("S")] = NC * e2tot * op[_PID_S]
     ev[basis.index("g")] = NC * e2tot * op[21]
     # but the non-singlet coupling is given by the quark contributions inside Sdelta
