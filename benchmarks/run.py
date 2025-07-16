@@ -55,7 +55,7 @@ operator_base = {
         "interpolation_is_log": True,
         "polarized": False,
         "time_like": False,
-        "n_integration_cores": 6,
+        "n_integration_cores": 1,
     },
     "debug": {"skip_singlet": False, "skip_non_singlet": False},
 }
