@@ -9,6 +9,7 @@ References
 
 import argparse
 import pathlib
+from collections.abc import Callable
 
 import eko.basis_rotation as br
 import grvphoton
@@ -16,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from eko.beta import beta_qcd
+from eko.interpolation import InterpolatorDispatcher, XGrid
 from eko.io.types import EvolutionPoint
 from run import EKODIR, GEKODIR, operator_base
 
@@ -25,6 +27,10 @@ import geko
 _HERE = pathlib.Path(__file__).parent
 _COMPAREDIR = _HERE / "compare"
 _PLOTSDIR = _HERE / "plots"
+_QCDNUMDIR = _HERE / "qcdnum_ref"
+
+_LABEL_GRV = "GRV"
+_LABEL_QCDNUM = "QCDNUM"
 
 
 # check alpha_s
@@ -93,27 +99,71 @@ def pid_weights(pid: str) -> np.ndarray:
     return w
 
 
-def df_vs_grv(
-    pto: int, evolved: dict, ep: EvolutionPoint, weights: np.ndarray
-) -> pd.DataFrame:
+_DF_VS_X_TYPE = Callable[[int, dict, EvolutionPoint, str], pd.DataFrame]
+
+
+def df_vs_grv(pto: int, evolved: dict, ep: EvolutionPoint, pid: str) -> pd.DataFrame:
     """Compare EKO vs. GRV."""
+    weights = pid_weights(pid)
     res = weights @ np.array([evolved[ep]["pdfs"][pid] for pid in br.flavor_basis_pids])
     df = pd.DataFrame()
     xgrid = operator_base["xgrid"]
     df["x"] = xgrid
     df["eko"] = res * xgrid
     ref = GRV(pto)
-    df["grv"] = [
+    df[_LABEL_GRV] = [
         weights @ np.array([ref.xfxQ2(pid, x, ep[0]) for pid in br.flavor_basis_pids])
         for x in xgrid
     ]
-    df["absErr"] = df["eko"] - df["grv"]
-    df["relErr"] = (df["eko"] - df["grv"]) / df["grv"]
+    df["absErr"] = df["eko"] - df[_LABEL_GRV]
+    df["relErr"] = (df["eko"] - df[_LABEL_GRV]) / df[_LABEL_GRV]
     return df
 
 
-def plot_vs_grv(
-    pto: int, eko_path: pathlib.Path, pl_path: pathlib.Path, is_abs: bool = False
+def df_vs_qcdnum(pto: int, evolved: dict, ep: EvolutionPoint, pid: str) -> pd.DataFrame:
+    """Compare EKO vs. QCDNUM."""
+    labels = ["u", "d", "s", "c", "S", "g"]
+    ep_map = {
+        (16.0, 4): "4",
+        (100.0, 5): "10",
+        (400.0, 5): "20",
+    }
+    if pid not in labels:
+        raise ValueError(f"QCDNUM has no PID '{pid}'")
+    # load QCDNUM
+    if pto != 1:
+        raise ValueError("QCDNUM comparison only available at NLO")
+    qcdnum_file = _QCDNUMDIR / f"GRV_evol_Q{ep_map[ep]}_nlo_high1.dat"
+    qcdnum = pd.read_csv(qcdnum_file, sep=r"\s+", header=None)
+    qcdnum.columns = ["x", "uv", "dv", "u", "d", "s", "c", "g", "S"]
+    # load gEKO
+    res = pid_weights(pid) @ np.array(
+        [evolved[ep]["pdfs"][pid] for pid in br.flavor_basis_pids]
+    )
+    df = pd.DataFrame()
+    # rotate gEKO to QCDNUM
+    xgrid = operator_base["xgrid"]
+    interp = InterpolatorDispatcher(
+        XGrid(xgrid, operator_base["configs"]["interpolation_is_log"]),
+        operator_base["configs"]["interpolation_polynomial_degree"],
+        False,
+    )
+    rot = interp.get_interpolation(qcdnum["x"].to_list())
+    df["x"] = qcdnum["x"]
+    df["eko"] = rot @ (res * xgrid)
+    df[_LABEL_QCDNUM] = qcdnum[pid]
+    df["absErr"] = df["eko"] - df[_LABEL_QCDNUM]
+    df["relErr"] = (df["eko"] - df[_LABEL_QCDNUM]) / df[_LABEL_QCDNUM]
+    return df
+
+
+def plot(
+    pto: int,
+    eko_path: pathlib.Path,
+    pl_path: pathlib.Path,
+    cmp: _DF_VS_X_TYPE,
+    label: str,
+    is_abs: bool = False,
 ) -> None:
     """Generate comparison plot EKO vs. GRV."""
     pids = np.array([["u", "d"], ["s", "c"], ["S", "g"]])
@@ -122,14 +172,14 @@ def plot_vs_grv(
     for axs_, pids_ in zip(axs, pids):
         for ax, pid in zip(axs_, pids_):
             for ep in evolved.keys():
-                cmp = df_vs_grv(pto, evolved, ep, pid_weights(pid))
-                label = f"{ep}" if pid == "u" else None
+                cmp_df = cmp(pto, evolved, ep, pid)
+                lab = f"{ep}" if pid == "u" else None
                 if is_abs:
-                    ax.plot(cmp["x"], cmp["eko"], label=label)
-                    ax.plot(cmp["x"], cmp["grv"])
+                    ax.plot(cmp_df["x"], cmp_df["eko"], label=lab)
+                    ax.plot(cmp_df["x"], cmp_df[label])
                 else:
-                    ax.plot(cmp["x"], cmp["eko"] / cmp["grv"], label=label)
-                if label is not None:
+                    ax.plot(cmp_df["x"], cmp_df["eko"] / cmp_df[label], label=lab)
+                if lab is not None:
                     ax.legend()
             ax.set_title(f"{pid}")
             ax.set_xscale("log")
@@ -149,41 +199,29 @@ def plot_vs_grv(
             ax.set_ylim(0.0, 1.0)
         axs[-1][0].set_ylim(0.0, 10.0)
         axs[-1][1].set_ylim(0.0, 50.0)
-        fig.suptitle(f"EKO,GRV PTO={pto}")
+        fig.suptitle(f"EKO,{label} PTO={pto}")
     else:
         for ax in axs.flatten():
             ax.set_ylim(0.95, 1.05)
-        fig.suptitle(f"EKO/GRV PTO={pto}")
+        fig.suptitle(f"EKO/{label} PTO={pto}")
     fig.tight_layout()
-    abs_tag = "-abs" if is_abs else ""
-    fig.savefig(_PLOTSDIR / f"compare{abs_tag}-{pto}.pdf")
+    abs_tag = "abs-" if is_abs else ""
+    fig.savefig(_PLOTSDIR / f"{abs_tag}{label}-{pto}.pdf")
     plt.close(fig)
 
 
-# def write_evolved_pdfs(
-#     pto: int, evolved: dict, weights: np.ndarray, out_dir: pathlib.Path
-# ) -> None:
-#     """Store rotated evolved PDFs as CSV: x, u, d, s, c, S, g."""
-#     out_dir.mkdir(parents=True, exist_ok=True)
-#     xgrid = operator_base["xgrid"]
-#     labels = ["u", "d", "s", "c", "S", "g"]
-
-#     for ep, data in evolved.items():
-#         # Collect PDFs from flavor basis
-#         fb_pdfs = np.array([data["pdfs"][pid] for pid in br.flavor_basis_pids])
-
-#         # Rotate using weights
-#         rotated = weights @ fb_pdfs  # shape: (7, len(xgrid))
-
-#         # Create DataFrame
-#         df = pd.DataFrame({"x": xgrid})
-#         for i, label in enumerate(labels):
-#             df[label] = rotated[i] * xgrid  # match EKO convention
-
-#         # Save CSV
-#         ep_str = "-".join(map(str, ep)) if isinstance(ep, tuple) else str(ep)
-#         csv_path = out_dir / f"evolved-pto_{pto}-{ep_str}.csv"
-#         df.to_csv(csv_path, index=False)
+def compare_df(pto: int, nep: int, pids: str, cmp: _DF_VS_X_TYPE, label: str) -> None:
+    """Show DataFrame comparison"""
+    evolved = geko.apply_pdf_paths(GRV(pto), EKODIR[pto], GEKODIR[pto])
+    ep = list(evolved.keys())[nep]
+    for pid in pids.split(","):
+        pid = pid.strip()
+        if pid == "":
+            continue
+        cmp_df = cmp(pto, evolved, ep, pid)
+        print(f"PID = {pid} at {ep} vs. {label}")
+        print(cmp_df)
+        cmp_df.to_csv(_COMPAREDIR / f"{label}-{pto}-{ep}-{pid}.csv")
 
 
 def cli() -> None:
@@ -195,6 +233,7 @@ def cli() -> None:
     parser.add_argument(
         "--alphas-VG", help="Compare alpha_s to Vadim", action="store_true"
     )
+    # GRV
     parser.add_argument(
         "--df-grv", help="Compare (g)EKO vs. GRV via DataFrame", action="store_true"
     )
@@ -208,13 +247,27 @@ def cli() -> None:
         help="Compare (g)EKO vs. GRV in a plot absolutely",
         action="store_true",
     )
-    # parser.add_argument(
-    #     "--write-pdfs", help="Write evolved PDFs to dataset files", action="store_true"
-    # )
+    # QCDNUM
+    parser.add_argument(
+        "--df-qcdnum",
+        help="Compare (g)EKO vs. QCDNUM via DataFrame",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--plot-qcdnum",
+        help="Compare (g)EKO vs. QCDNUM in a plot relatively",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--plot-abs-qcdnum",
+        help="Compare (g)EKO vs. QCDNUM in a plot absolutely",
+        action="store_true",
+    )
 
     # prepare args
     args = parser.parse_args()
     pto_: int = int(args.pto)
+    nep_: int = int(args.nep)
     # do something
     if args.alphas_VG:
         if pto_ == 0:
@@ -229,25 +282,20 @@ def cli() -> None:
                 a_s_grv(91.2**2, 5, 0.131**2, 1) * 4.0 * np.pi,
                 " =?= 0.109 [VG, Eq. (4.5)]",
             )
+    # GRV
     if args.df_grv:
-        evolved = geko.apply_pdf_paths(GRV(pto_), EKODIR[pto_], GEKODIR[pto_])
-        ep = list(evolved.keys())[int(args.nep)]
-        for pid_ in args.pid.split(","):
-            pid_ = pid_.strip()
-            if pid_ == "":
-                continue
-            cmp = df_vs_grv(pto_, evolved, ep, pid_weights(pid_))
-            print(f"PID = {pid_} at {ep}")
-            print(cmp)
-            cmp.to_csv(_COMPAREDIR / f"{pto_}-{ep}-{pid_}.csv")
+        compare_df(pto_, nep_, args.pid, df_vs_grv, _LABEL_GRV)
     if args.plot_grv:
-        plot_vs_grv(pto_, EKODIR[pto_], GEKODIR[pto_], False)
+        plot(pto_, EKODIR[pto_], GEKODIR[pto_], df_vs_grv, _LABEL_GRV, False)
     if args.plot_abs_grv:
-        plot_vs_grv(pto_, EKODIR[pto_], GEKODIR[pto_], True)
-    # if args.write_pdfs:
-    #     evolved = geko.apply_pdf_paths(GRV(pto_), EKODIR[pto_], GEKODIR[pto_])
-    #     weights = np.stack([pid_weights(pid) for pid in ["u", "d", "s", "c", "S", "g"]])
-    #     write_evolved_pdfs(pto_, evolved, weights, pathlib.Path("evolved_pdfs"))
+        plot(pto_, EKODIR[pto_], GEKODIR[pto_], df_vs_grv, _LABEL_GRV, True)
+    # QCDNUM
+    if args.df_qcdnum:
+        compare_df(pto_, nep_, args.pid, df_vs_qcdnum, _LABEL_QCDNUM)
+    if args.plot_qcdnum:
+        plot(pto_, EKODIR[pto_], GEKODIR[pto_], df_vs_qcdnum, _LABEL_QCDNUM, False)
+    if args.plot_qcdnum:
+        plot(pto_, EKODIR[pto_], GEKODIR[pto_], df_vs_qcdnum, _LABEL_QCDNUM, True)
 
 
 if __name__ == "__main__":
