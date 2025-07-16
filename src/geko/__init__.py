@@ -5,6 +5,7 @@ import pathlib
 from dataclasses import asdict
 
 import eko
+import eko.basis_rotation as br
 import eko.runner.commons as rcom
 import numpy as np
 from eko.io.inventory import encode
@@ -12,6 +13,7 @@ from eko.io.items import Evolution, Target
 from eko.io.runcards import OperatorCard, TheoryCard
 from eko.io.types import EvolutionPoint
 from eko.matchings import Atlas, Segment
+from ekobox.apply import apply_pdf
 
 from .op import compute_one
 
@@ -138,3 +140,21 @@ def load(path: pathlib.Path) -> dict[EvolutionPoint, np.ndarray]:
         op_path = path / OPERATORSDIR / (encode(head) + OPERATOR_EXT)
         out[ep] = np.load(op_path)
     return out
+
+
+def apply_pdf_paths(lhapdf_like, eko_path: pathlib.Path, pl_path: pathlib.Path) -> dict:
+    """Evolve PDF with eko + geko."""
+    # hadronic contributions
+    evolved = None
+    with eko.EKO.read(eko_path) as evolution_operator:
+        evolved = apply_pdf(evolution_operator, lhapdf_like)
+    # point-like contributions
+    pl = load(pl_path)
+    if len(evolved.keys()) != len(pl.keys()):
+        raise ValueError(
+            "Point-like and hadronic contributions don't contain the same number of evolution points!"
+        )
+    for ep in evolved:
+        for idx, pid in enumerate(br.flavor_basis_pids):
+            evolved[ep]["pdfs"][pid] += pl[ep][idx] / (4.0 * np.pi)
+    return evolved

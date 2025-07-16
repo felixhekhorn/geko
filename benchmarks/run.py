@@ -13,7 +13,6 @@ import pathlib
 import shutil
 from math import nan
 
-import eko
 import eko.basis_rotation as br
 import grvphoton
 import matplotlib.pyplot as plt
@@ -24,7 +23,6 @@ from eko.interpolation import lambertgrid
 from eko.io.runcards import OperatorCard, TheoryCard
 from eko.io.types import EvolutionPoint
 from eko.runner.managed import solve as eko_solve
-from ekobox.apply import apply_pdf
 
 import geko
 
@@ -163,24 +161,6 @@ class GRV:
         return grvphoton.grvglo(x, Q2)[idx]
 
 
-def evolve(pto: int, eko_path: pathlib.Path, pl_path: pathlib.Path) -> dict:
-    """Evolve PDF."""
-    # hadronic contributions
-    evolved = None
-    with eko.EKO.read(eko_path) as evolution_operator:
-        evolved = apply_pdf(evolution_operator, GRV(pto))
-    # point-like contributions
-    pl = geko.load(pl_path)
-    if len(evolved.keys()) != len(pl.keys()):
-        raise ValueError(
-            "Point-like and hadronic contributions don't contain the same number of evolution points!"
-        )
-    for ep in evolved.keys():
-        for idx, pid in enumerate(br.flavor_basis_pids):
-            evolved[ep]["pdfs"][pid] += pl[ep][idx] / (4.0 * np.pi)
-    return evolved
-
-
 def pid_weights(pid: str) -> np.ndarray:
     """Cast pid to flavor projection."""
     w = np.zeros_like(br.flavor_basis_pids)
@@ -228,7 +208,7 @@ def compare_plot(
 ) -> None:
     """Generate comparison plot EKO vs. GRV."""
     pids = np.array([["u", "d"], ["s", "c"], ["S", "g"]])
-    evolved = evolve(pto, eko_path, pl_path)
+    evolved = geko.apply_pdf_paths(GRV(pto), eko_path, pl_path)
     fig, axs = plt.subplots(*pids.shape, sharex=True, figsize=(7, 7))
     for axs_, pids_ in zip(axs, pids):
         for ax, pid in zip(axs_, pids_):
@@ -355,7 +335,7 @@ def cli() -> None:
     if args.geko:
         compute_geko(pto_, GEKODIR[pto_], EKODIR[pto_], overwrite_)
     if args.compare_df:
-        evolved = evolve(pto_, EKODIR[pto_], GEKODIR[pto_])
+        evolved = geko.apply_pdf_paths(GRV(pto_), EKODIR[pto_], GEKODIR[pto_])
         ep = list(evolved.keys())[int(args.nep)]
         for pid_ in args.pid.split(","):
             pid_ = pid_.strip()
@@ -370,7 +350,7 @@ def cli() -> None:
     if args.compare_plot_abs:
         compare_plot(pto_, EKODIR[pto_], GEKODIR[pto_], True)
     if args.write_pdfs:
-        evolved = evolve(pto_, EKODIR[pto_], GEKODIR[pto_])
+        evolved = geko.apply_pdf_paths(GRV(pto_), EKODIR[pto_], GEKODIR[pto_])
         weights = np.stack([pid_weights(pid) for pid in ["u", "d", "s", "c", "S", "g"]])
         write_evolved_pdfs(pto_, evolved, weights, pathlib.Path("evolved_pdfs"))
 
