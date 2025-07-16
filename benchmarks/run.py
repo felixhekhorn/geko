@@ -23,7 +23,7 @@ GEKODIR = {0: _DATADIR / "lo-geko", 1: _DATADIR / "nlo-geko"}
 theory_base = {
     "order": [1, 0],  # This is overwritten by the CLI
     "couplings": {
-        "alphas": 0.128,
+        "alphas": 0.128,  # This may be overwritten by the CLI
         "alphaem": 1.0 / 137.0,
         "scale": 91.2,
         "num_flavs_ref": 5,
