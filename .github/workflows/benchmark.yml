@@ -33,9 +33,12 @@ jobs:
           poetry run python run.py 0 -eko -geko
           poetry run python run.py 1 -eko -geko
       - name: Compile GRV
-        run: poetry run python -m numpy.f2py -c -m grvphoton grvphoton.f
+        run: |
+          cd benchmarks/
+          poetry run python -m numpy.f2py -c -m grvphoton grvphoton.f
       - name: Run comparison
         run: |
+          cd benchmarks/
           echo "### LO ###"
           poetry run python compare.py 0 --df-grv -pid u,g,S -nep 0
           poetry run python compare.py 0 --df-grv -pid u,g,S -nep 2
