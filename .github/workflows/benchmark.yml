@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  benchmark:
     name: Benchmarks
     runs-on: ubuntu-latest
     steps:
@@ -27,12 +27,18 @@ jobs:
           python-version: 3.12
           cache: 'poetry'
       - run: poetry install --with benchmark
-      - name: Run benchmark
+      - name: Generate objects
         run: |
           cd benchmarks/
-          # generate objects
           poetry run python run.py 0 -eko -geko
-          # compile GRV
-          poetry run python -m numpy.f2py -c -m grvphoton grvphoton.f
-          # compare
-          poetry run python compare.py 0 --df-grv
+          poetry run python run.py 1 -eko -geko
+      - name: Compile GRV
+        run: poetry run python -m numpy.f2py -c -m grvphoton grvphoton.f
+      - name: Run comparison
+        run: |
+          echo "### LO ###"
+          poetry run python compare.py 0 --df-grv -pid u,g,S -nep 0
+          poetry run python compare.py 0 --df-grv -pid u,g,S -nep 2
+          echo "### NLO ###"
+          poetry run python compare.py 1 --df-qcdnum -pid u,g,S -nep 0
+          poetry run python compare.py 1 --df-qcdnum -pid u,g,S -nep 2
