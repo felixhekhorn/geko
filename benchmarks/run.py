@@ -118,6 +118,9 @@ def cli() -> None:
         help="Compute gEKO",
         action="store_true",
     )
+    parser.add_argument(
+        "--overwrite", help="Overwrite files if already present", action="store_true"
+    )
     # prepare args
     args = parser.parse_args()
     pto_: int = int(args.pto)
