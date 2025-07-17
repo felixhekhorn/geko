@@ -18,15 +18,18 @@ repos:
     hooks:
       - id: pycln
         args: [--config=pyproject.toml]
+  - repo: https://github.com/adamchainz/blacken-docs
+    rev: 1.19.1
+    hooks:
+      - id: blacken-docs
+        additional_dependencies:
+          - black==25.1.0
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.2
     hooks:
       # Run the linter.
       - id: ruff-check
         args: [ --fix ]
-      # Sort imports
-      - id: ruff-check
-        args: [ --select, I, --fix ]
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy

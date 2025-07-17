@@ -132,7 +132,7 @@ def load(path: pathlib.Path) -> dict[EvolutionPoint, np.ndarray]:
         raise FileNotFoundError(f"'{path}' does not exist!")
     # load op card
     operator_card = None
-    with open(path / OPERATORFILE, "r", encoding="utf8") as f:
+    with open(path / OPERATORFILE, encoding="utf8") as f:
         operator_card = json.load(f)
     operator_card = OperatorCard.from_dict(operator_card)
     # load operators
