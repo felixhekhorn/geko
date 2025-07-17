@@ -51,14 +51,20 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poe.tasks]
-test = "pytest tests"
+test = "pytest"
 docs = { "shell" = "cd docs; make html" }
 docs-view = { "shell" = "cd docs; make view" }
 docs-server = { "shell" = "cd docs; make server" }
 docs-clean = { "shell" = "cd docs; make clean" }
 
 [tool.pytest.ini_options]
+minversion = "7"
 env = ["D:NUMBA_DISABLE_JIT=1"]
+testpaths = ["tests"]
+log_cli_level = "INFO"
+xfail_strict = true
+addopts = ["-ra", "--showlocals", "--strict-config", "--strict-markers"]
+filterwarnings = ["error"]
 
 [tool.ruff.format]
 docstring-code-format = true
