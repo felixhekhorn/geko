@@ -1,6 +1,6 @@
 [project]
 name = "geko"
-version = "0.1.0"
+version = "0.1.1"
 description = "(Point-like) Photon Evolution Kernel Object"
 authors = [
     {name = "Felix Hekhorn",email = "felix.a.hekhorn@jyu.fi"}

@@ -11,12 +11,14 @@ import pathlib
 
 import eko
 
+import geko
+
 _HERE = pathlib.Path(__file__).absolute().parent
 
 project = "geko"
 copyright = "2025, Felix Hekhorn"
 author = "Felix Hekhorn"
-release = "0.1.0"
+release = geko.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
