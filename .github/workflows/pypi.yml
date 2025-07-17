@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.12
-          cache: 'poetry'
+          cache: "poetry"
       - run: poetry install --with test
       - name: Install task runner
         run: pipx install poethepoet
