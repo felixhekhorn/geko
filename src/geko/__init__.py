@@ -3,6 +3,7 @@
 import json
 import pathlib
 from dataclasses import asdict
+from typing import Any
 
 import eko
 import eko.basis_rotation as br
@@ -54,7 +55,7 @@ def build_all_recipes(evolgrid: list[EvolutionPoint], atlas: Atlas) -> list[Evol
 
 def combine_operator(
     ep: EvolutionPoint, atlas: Atlas, path: pathlib.Path, ekop: eko.EKO
-):
+) -> None:
     """Combine all parts to a true operator."""
     recipes = build_recipes(ep, atlas)
     op = 0.0
@@ -144,10 +145,12 @@ def load(path: pathlib.Path) -> dict[EvolutionPoint, np.ndarray]:
     return out
 
 
-def apply_pdf_paths(lhapdf_like, eko_path: pathlib.Path, pl_path: pathlib.Path) -> dict:
+def apply_pdf_paths(
+    lhapdf_like: Any, eko_path: pathlib.Path, pl_path: pathlib.Path
+) -> dict[EvolutionPoint, dict[str, np.ndarray]]:
     """Evolve |PDF| with eko + geko."""
     # hadronic contributions
-    evolved = None
+    evolved: dict[EvolutionPoint, dict[str, np.ndarray]] = {}
     with eko.EKO.read(eko_path) as evolution_operator:
         evolved = apply_pdf(evolution_operator, lhapdf_like)
     # point-like contributions

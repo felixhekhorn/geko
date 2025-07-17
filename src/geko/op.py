@@ -30,14 +30,14 @@ _MELLIN_LIMIT = 100
 def ns_as0_exact(n: complex, a1: float, a0: float, nf: int) -> complex:
     """|LO| non-singlet exact solution."""
     cache = c.reset()
-    gamma0 = gamma_ns((1, 0), _PID_NSP, n, nf, [0.0] * 7, True)[0]
+    gamma0: complex = gamma_ns((1, 0), _PID_NSP, n, nf, [0.0] * 7, True)[0]
     beta0 = beta_qcd((2, 0), nf)
     ker = (
         anomalous_dimensions.ns_as0(n, nf, cache)
         / (gamma0 + beta0)
         * (np.exp(gamma0 * np.log(a1 / a0) / beta0) / a0 - 1.0 / a1)
     )
-    return ker
+    return complex(ker)
 
 
 def singlet_as0_exact(n: complex, a1: float, a0: float, nf: int) -> np.ndarray:
@@ -46,7 +46,7 @@ def singlet_as0_exact(n: complex, a1: float, a0: float, nf: int) -> np.ndarray:
     gamma0 = gamma_singlet((1, 0), n, nf, [0.0] * 7, True)[0]
     beta0 = beta_qcd((2, 0), nf)
     _exp, lambda_p, lambda_m, e_p, e_m = exp_matrix_2D(gamma0)
-    tot = 0
+    tot = np.zeros((2, 2), np.complex128)
     for lam, e in ((lambda_m, e_m), (lambda_p, e_p)):
         tot += (
             (
@@ -123,7 +123,7 @@ def ns_iterate(
     # and finally do the last step
     a1_pow = np.power(a1, pows)
     ker += (k @ a1_pow) / (beta @ a1_pow) / a1**2 * iter_distance[-1]
-    return 0.5 * ker
+    return complex(0.5 * ker)
 
 
 def singlet_iterate(
@@ -208,7 +208,7 @@ def quad_ker(
             ker = vker[1]
         else:
             ker = vker[0]
-    return np.real(p.prefactor * p.jac * ker * np.exp(-logx * p.n))
+    return float(np.real(p.prefactor * p.jac * ker * np.exp(-logx * p.n)))
 
 
 def blowup(op: dict[int, np.ndarray], nf: int) -> np.ndarray:

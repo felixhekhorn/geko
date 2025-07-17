@@ -41,7 +41,7 @@ def ns_as1_msbar(n: complex, nf: int, cache: np.ndarray) -> complex:
         + (11.0 * n**4 + 26.0 * n**3 + 15.0 * n**2 + 8.0 * n + 4.0)
         / (n**3 * (n + 1.0) ** 3 * (n + 2.0))
     )
-    return res * CF * (-4.0)
+    return complex(res * CF * (-4.0))
 
 
 def ns_as1(n: complex, nf: int, cache: np.ndarray, is_disg: bool = True) -> complex:
@@ -81,7 +81,7 @@ def gluon_as1_msbar(n: complex, _nf: int, _cache: np.ndarray) -> complex:
     Implements Eq. (2.10) of :cite:`Gluck:1991ee`."""
     num = 2 * n**6 + 4 * n**5 + n**4 - 10 * n**3 - 5 * n**2 - 4 * n - 4
     den = (n - 1) * n**3 * (n + 1) ** 3 * (n + 2)
-    return CF * -2 * -4 * num / den
+    return complex(CF * -2 * -4 * num / den)
 
 
 def singlet_as1(
@@ -121,4 +121,4 @@ def dis_gamma_coeff_as0(n: complex, _nf: int, cache: np.ndarray) -> complex:
         * (2.0 + n + 4.0 * n**2 - n**3 - n * (2.0 + n + n**2) * S1)
         / (n**2 * (n + 1) * (n + 2))
     )
-    return c2g
+    return complex(c2g)
