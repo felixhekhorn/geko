@@ -8,3 +8,9 @@
 [![Python unit tests](https://github.com/felixhekhorn/geko/actions/workflows/unittests.yml/badge.svg)](https://github.com/felixhekhorn/geko/actions/workflows/unittests.yml)
 [![Documentation](https://app.readthedocs.org/projects/geko/badge/?version=latest)](https://geko.readthedocs.io/en/latest)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
+## Citation policy
+
+When using our code please cite
+
+- our DOI: [![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.16032672.svg)](https://doi.org/10.5281/zenodo.16032672)
