@@ -17,6 +17,8 @@ from ekobox.apply import apply_pdf
 
 from .op import compute_one
 
+__version__ = "0.1.0"
+
 THEORYFILE = "theory.json"
 OPERATORFILE = "operator.json"
 
