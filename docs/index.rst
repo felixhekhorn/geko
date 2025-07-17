@@ -1,7 +1,7 @@
 γEKO documentation
 ==================
 
-γEKO (pronouced [geko]) is a Python module to solve the point-like contribution to the photon evolution.
+γEKO (pronounced [geko]) is a Python module to solve the point-like contribution to the photon evolution.
 It is closely related to eko_.
 
 .. _eko: https://github.com/NNPDF/eko

@@ -66,7 +66,7 @@ def combine_operator(
         geko_recipe = recipes[j]
         part_path = path / PARTSDIR / (encode(geko_recipe) + OPERATOR_EXT)
         geko_op = np.load(part_path)
-        # ekos are mulitplied from the right!
+        # ekos are multiplied from the right!
         for eko_recipe in reversed(eko_recipes):
             geko_op = np.einsum("akbj,bj->ak", ekop.parts[eko_recipe].operator, geko_op)
         op += geko_op
