@@ -64,16 +64,21 @@ Iterative solution
 
 Beyond |LO| |EKO| s are in general not known as closed form expression, but a numerical approximation strategy has to be implemented
 (see `eko documentation`_ for a detailed discussion).
-Currently γEKO only supports the :code:`iterate-exact` solution, which relies on an iterative approach to solve the |RGE|.
+Currently γEKO only supports the :code:`iterate-exact` solution, which relies on an iterative approach to solve the |RGE| :cite:`Bonvini:2012sh`.
 We exploit the strategy for computing the (standard) |EKO| :math:`\tilde {\mathbf E}` to solve *simultaneously* our master equation here.
-The central observation is that we can use the same decomposition of :math:`\tilde {\mathbf E}` into (infinitesimally) smaller pieces
+The central observation is that we can use the same decomposition of :math:`\tilde {\mathbf E}` into (infinitesimally) small pieces
 also for solving our master equation, by applying the trapezoidal rule to the integral.
 
 In practice it works like this:
 
 - assume we split the integral along the points :math:`\{a_s^k, k = 0\ldots M\}` with :math:`a_s^M = a_s` the upper boundary of the integral
 - define the interval ranges :math:`\{\Delta a_s^k = a_s^{k+1} - a_s^k, k = 0\ldots M-1\}`
-- start the iteration by :math:`\tilde{\mathbf g}^0 = \frac{\Delta a_s^0}{2} \tilde {\mathbf E}(a_s^1 \leftarrow a_s^0) \frac{-\tilde{\mathbf k}(a_s^0)}{\beta(a_s^0)}`
-- iterate :math:`M-2` times:
-- close the iteration by
+- start the iteration: :math:`\tilde{\mathbf g}^0 = \frac{\Delta a_s^0}{2} \tilde {\mathbf E}(a_s^1 \leftarrow a_s^0) \frac{-\tilde{\mathbf k}(a_s^0)}{\beta(a_s^0)}`
+- iterate :math:`k = 1 \ldots M-1`: :math:`\tilde{\mathbf g}^k = \tilde {\mathbf E}(a_s^{k+1} \leftarrow a_s^k)\left(\frac{\Delta a_s^{k} + \Delta a_s^{k-1}}{2} \frac{-\tilde{\mathbf k}(a_s^k)}{\beta(a_s^k)} + \tilde{\mathbf g}^{k-1}\right)`
+- close the iteration: :math:`\tilde{\mathbf g}^M = \frac{\Delta a_s^{M-1}}{2} \frac{-\tilde{\mathbf k}(a_s^0)}{\beta(a_s^0)}`
 - identify the final result: :math:`\tilde{\mathbf f}^\gamma_{inhom}(a_s) = \tilde{\mathbf g}^M`
+
+All (partial) |EKO| s :math:`\tilde {\mathbf E}(a_s^{k+1} \leftarrow a_s^k)` are evaluated using the strategy outlined
+in :cite:`Bonvini:2012sh`, which evaluates the anomalous dimensions (and beta function) at the *intermediate* point,
+i.e. at :math:`a_s^{k+1/2} = (a_s^{k+1} + a_s^k)/2`. This implies that the parton-photon anomalous dimensions :math:`\tilde{\mathbf k}`
+and parton-parton anomalous dimensions :math:`\gamma` are *not* evaluated at the same strong coupling.
