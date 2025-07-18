@@ -11,5 +11,6 @@ It is closely related to eko_.
    :caption: Contents:
    :hidden:
 
+   DGLAP
    API <modules/geko/geko>
    zzz-refs

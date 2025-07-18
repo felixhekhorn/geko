@@ -51,6 +51,9 @@
 .. |QCD| replace::
    :abbr:`QCD (Quantum Chromodynamics)`
 
+.. |pQCD| replace::
+   :abbr:`pQCD (perturbative Quantum Chromodynamics)`
+
 .. |QED| replace::
    :abbr:`QED (Quantum Electrodynamics)`
 

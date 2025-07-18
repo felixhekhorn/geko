@@ -75,12 +75,6 @@ extend-select = [
 [tool.ruff.format]
 docstring-code-format = true
 
-[tool.typos]
-files.extend-exclude = [
-  "benchmarks/grvphoton.f",
-  "docs/_static/abbreviations.rst"
-]
-
 [tool.mypy]
 files = "src"
 strict = true

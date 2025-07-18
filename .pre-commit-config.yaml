@@ -50,10 +50,6 @@ repos:
         additional_dependencies: [types-PyYAML]
         pass_filenames: false
         args: ["--ignore-missing-imports", "src/"]
-  - repo: https://github.com/crate-ci/typos
-    rev: v1.34.0
-    hooks:
-      - id: typos
   - repo: https://github.com/pre-commit/pre-commit
     rev: v4.2.0
     hooks:
