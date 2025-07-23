@@ -148,7 +148,11 @@ def load(path: pathlib.Path) -> dict[EvolutionPoint, np.ndarray]:
 def apply_pdf_paths(
     lhapdf_like: Any, eko_path: pathlib.Path, pl_path: pathlib.Path
 ) -> dict[EvolutionPoint, dict[str, np.ndarray]]:
-    """Evolve |PDF| with eko + geko."""
+    r"""Evolve |PDF| with eko + geko.
+
+    The |PDF| `lhapdf_like` must be normalized as :math:`f / \alpha_{em}`,
+    and the result returned has the same normalization.
+    """
     # hadronic contributions
     evolved: dict[EvolutionPoint, dict[str, np.ndarray]] = {}
     with eko.EKO.read(eko_path) as evolution_operator:
