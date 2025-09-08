@@ -171,16 +171,18 @@ def plot(
     fig, axs = plt.subplots(*pids.shape, sharex=True, figsize=(7, 7))
     for axs_, pids_ in zip(axs, pids):
         for ax, pid in zip(axs_, pids_):
-            for ep in evolved.keys():
+            keys = [*evolved.keys()]
+            keys.sort()
+            for ep in keys:
                 cmp_df = cmp(pto, evolved, ep, pid)
-                lab = f"{ep}" if pid == "u" else None
+                lab = r"$Q^2 = {} \ \mathrm{{GeV}}^2,\ {} \ n_f$".format(ep[0], ep[1]) if pid == "u" else None
                 if is_abs:
                     ax.plot(cmp_df["x"], cmp_df["eko"], label=lab)
                     ax.plot(cmp_df["x"], cmp_df[label])
                 else:
                     ax.plot(cmp_df["x"], cmp_df["eko"] / cmp_df[label], label=lab)
                 if lab is not None:
-                    ax.legend()
+                    ax.legend(prop={'size': 9})
             ax.set_title(f"{pid}")
             ax.set_xscale("log")
             ax.set_xlim(1e-4, 1.0)
@@ -203,7 +205,7 @@ def plot(
     else:
         for ax in axs.flatten():
             ax.set_ylim(0.95, 1.05)
-        fig.suptitle(f"EKO/{label} PTO={pto}")
+        fig.suptitle(f"γEKO/{label} PTO={pto}")
     fig.tight_layout()
     abs_tag = "abs-" if is_abs else ""
     fig.savefig(_PLOTSDIR / f"{abs_tag}{label}-{pto}.pdf")
