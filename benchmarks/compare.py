@@ -175,14 +175,18 @@ def plot(
             keys.sort()
             for ep in keys:
                 cmp_df = cmp(pto, evolved, ep, pid)
-                lab = r"$Q^2 = {} \ \mathrm{{GeV}}^2,\ {} \ n_f$".format(ep[0], ep[1]) if pid == "u" else None
+                lab = (
+                    rf"$Q^2 = {ep[0]} \ \mathrm{{GeV}}^2,\ {ep[1]} \ n_f$"
+                    if pid == "u"
+                    else None
+                )
                 if is_abs:
                     ax.plot(cmp_df["x"], cmp_df["eko"], label=lab)
                     ax.plot(cmp_df["x"], cmp_df[label])
                 else:
                     ax.plot(cmp_df["x"], cmp_df["eko"] / cmp_df[label], label=lab)
                 if lab is not None:
-                    ax.legend(prop={'size': 9})
+                    ax.legend(prop={"size": 9})
             ax.set_title(f"{pid}")
             ax.set_xscale("log")
             ax.set_xlim(1e-4, 1.0)
