@@ -1,9 +1,11 @@
 import numpy as np
 from eko.beta import beta_qcd
+from eko.interpolation import XGrid
+from eko.io.items import Evolution
 from eko.kernels.non_singlet import lo_exact
 from ekore.anomalous_dimensions.unpolarized.space_like import gamma_ns
 
-from geko.op import _PID_NSP, ns_as0_exact, ns_iterate, singlet_iterate
+from geko.op import _PID_NSP, compute_one, ns_as0_exact, ns_iterate, singlet_iterate
 
 
 def test_eko_ns():
@@ -96,3 +98,31 @@ def test_shape():
                 assert sng.shape == (2,)
                 assert (np.isfinite(sng)).all()
                 assert (np.abs(sng) > 1e-5).all()
+
+
+def test_compute_one(tmp_path, monkeypatch):
+    x = XGrid([0.1, 0.5, 1.0], True)
+
+    # check zero evolution
+    class FakeConstCoupling:
+        def a_s(self, *_args):
+            return 0.1
+
+    target = tmp_path / "zero.npy"
+    compute_one(x, FakeConstCoupling(), Evolution(10, 20, 3), target, 1, 10)
+    zero = np.load(target)
+    np.testing.assert_allclose(zero, np.zeros_like(zero))
+    # check non-zero evolution
+    monkeypatch.setattr("geko.op.quad_ker", lambda *_args, **_kwargs: 1.0)
+
+    class FakeNonConstCoupling:
+        def a_s(self, q2, *_args):
+            return 1.0 / q2
+
+    target = tmp_path / "non-zero.npy"
+    compute_one(x, FakeNonConstCoupling(), Evolution(10, 100, 6), target, 1, 10)
+    ones = np.load(target)
+    expected = [0.0] + [1.0 / 3.0, 1.0 / 12.0] * 3 + [2.5] + [1.0 / 12.0, 1.0 / 3.0] * 3
+    np.testing.assert_allclose(
+        ones, np.array(expected * 3).reshape(3, 14).T, rtol=2e-6, atol=5e-6
+    )

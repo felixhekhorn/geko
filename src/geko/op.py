@@ -220,13 +220,15 @@ def blowup(op: dict[int, np.ndarray], nf: int) -> np.ndarray:
     flavour_to_intrinsic_unified_evol = np.zeros(
         (len(br.flavor_basis_pids), len(br.flavor_basis_pids))
     )
-    basis = ["S", "g", "Sdelta", "ph", "V", "Vdelta", "Td3", "Vd3", "t+", "t-"]
+    basis = ["S", "g", "Sdelta", "ph", "V", "Vdelta", "Td3", "Vd3"]
     if nf == 3:
-        basis += ["c+", "c-", "b+", "b-"]
+        basis += ["c+", "c-", "b+", "b-", "t+", "t-"]
     elif nf == 4:
-        basis += ["Tu3", "Vu3", "b+", "b-"]
+        basis += ["Tu3", "Vu3", "b+", "b-", "t+", "t-"]
     elif nf == 5:
-        basis += ["Tu3", "Vu3", "Td8", "Vd8"]
+        basis += ["Tu3", "Vu3", "Td8", "Vd8", "t+", "t-"]
+    elif nf == 6:
+        basis += ["Tu3", "Vu3", "Td8", "Vd8", "Tu8", "Vu8"]
     for idx, lab in enumerate(basis):
         flavour_to_intrinsic_unified_evol[idx] = pids_from_intrinsic_unified_evol(
             lab, nf, False
@@ -258,19 +260,22 @@ def compute_one(
     for lab in (_PID_NSP, 21, _PID_S):
         # iterate all points
         vec = []
-        for x in xgrid.raw:
-            # do the inversion
-            args = (lab, np.log(x), a1, a0, seg.nf, order_qcd, ev_op_iterations)
-            res = quad(
-                quad_ker,
-                0.5,
-                1.0 - _MELLIN_CUT,
-                args=args,
-                epsabs=_MELLIN_EPS_ABS,
-                epsrel=_MELLIN_EPS_REL,
-                limit=_MELLIN_LIMIT,
-            )
-            vec.append(res[0])
+        if np.isclose(a1, a0):
+            vec = np.zeros_like(xgrid.raw)
+        else:
+            for x in xgrid.raw:
+                # do the inversion
+                args = (lab, np.log(x), a1, a0, seg.nf, order_qcd, ev_op_iterations)
+                res = quad(
+                    quad_ker,
+                    0.5,
+                    1.0 - _MELLIN_CUT,
+                    args=args,
+                    epsabs=_MELLIN_EPS_ABS,
+                    epsrel=_MELLIN_EPS_REL,
+                    limit=_MELLIN_LIMIT,
+                )
+                vec.append(res[0])
         op[lab] = np.array(vec)
     # blow up
     out = blowup(op, seg.nf)
