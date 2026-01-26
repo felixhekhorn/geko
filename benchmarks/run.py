@@ -82,6 +82,7 @@ def compute_eko(
             return
     tc = TheoryCard.from_dict(theory_base)
     tc.order = (1 + pto, 0)
+    tc.matching_order = (pto, 0)
     if pto == 1:
         update_theory_nlo(tc)
     # activate logging
