@@ -1,8 +1,10 @@
 """Compute benchmark operators."""
 
 import argparse
+import logging
 import pathlib
 import shutil
+import sys
 from math import nan
 
 from eko.interpolation import lambertgrid
@@ -67,7 +69,9 @@ def update_theory_nlo(tc: TheoryCard):
     # tc.couplings.alphas = 0.1090  # comparing to VG
 
 
-def compute_eko(pto: int, path: pathlib.Path, overwrite: bool = False) -> None:
+def compute_eko(
+    pto: int, path: pathlib.Path, overwrite: bool = False, log_to_stdout: bool = False
+) -> None:
     """Compute an EKO."""
     if path.exists():
         if overwrite:
@@ -80,6 +84,14 @@ def compute_eko(pto: int, path: pathlib.Path, overwrite: bool = False) -> None:
     tc.order = (1 + pto, 0)
     if pto == 1:
         update_theory_nlo(tc)
+    # activate logging
+    if log_to_stdout:
+        logStdout = logging.StreamHandler(sys.stdout)
+        logStdout.setLevel(logging.INFO)
+        logStdout.setFormatter(logging.Formatter("%(message)s"))
+        logging.getLogger("eko").handlers = []
+        logging.getLogger("eko").addHandler(logStdout)
+        logging.getLogger("eko").setLevel(logging.INFO)
     # do it!
     eko_solve(tc, OperatorCard.from_dict(operator_base), path)
 
@@ -121,12 +133,15 @@ def cli() -> None:
     parser.add_argument(
         "--overwrite", help="Overwrite files if already present", action="store_true"
     )
+    parser.add_argument(
+        "--printlog", help="Print logging information to STDOUT", action="store_true"
+    )
     # prepare args
     args = parser.parse_args()
     pto_: int = int(args.pto)
     overwrite_: bool = bool(args.overwrite)
     if args.eko:
-        compute_eko(pto_, EKODIR[pto_], overwrite_)
+        compute_eko(pto_, EKODIR[pto_], overwrite_, bool(args.printlog))
     if args.geko:
         compute_geko(pto_, GEKODIR[pto_], EKODIR[pto_], overwrite_)
 
