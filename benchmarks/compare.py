@@ -31,6 +31,7 @@ _QCDNUMDIR = _HERE / "qcdnum_ref"
 
 _LABEL_GRV = "GRV"
 _LABEL_QCDNUM = "QCDNUM"
+_LABEL_VOID = "void"
 
 
 # check alpha_s
@@ -100,6 +101,18 @@ def pid_weights(pid: str) -> np.ndarray:
 
 
 _DF_VS_X_TYPE = Callable[[int, dict, EvolutionPoint, str], pd.DataFrame]
+
+
+def df_vs_void(_pto: int, evolved: dict, ep: EvolutionPoint, pid: str) -> pd.DataFrame:
+    """Compute EKO."""
+    weights = pid_weights(pid)
+    res = weights @ np.array([evolved[ep]["pdfs"][pid] for pid in br.flavor_basis_pids])
+    df = pd.DataFrame()
+    xgrid = operator_base["xgrid"]
+    df["x"] = xgrid
+    df["eko"] = res * xgrid
+    df[_LABEL_VOID] = np.zeros_like(xgrid)
+    return df
 
 
 def df_vs_grv(pto: int, evolved: dict, ep: EvolutionPoint, pid: str) -> pd.DataFrame:
@@ -188,8 +201,11 @@ def plot(
                 if lab is not None:
                     ax.legend(prop={"size": 9})
             ax.set_title(f"{pid}")
+            # TODO: add option for linear plot
             ax.set_xscale("log")
             ax.set_xlim(1e-4, 1.0)
+            # ax.set_xscale("log")
+            # ax.set_xlim(.1, 1.0)
             ax.tick_params(
                 which="both",
                 direction="in",
@@ -202,9 +218,9 @@ def plot(
         ax.set_xlabel("x")
     if is_abs:
         for ax in axs.flatten()[:4]:
-            ax.set_ylim(0.0, 1.0)
-        axs[-1][0].set_ylim(0.0, 10.0)
-        axs[-1][1].set_ylim(0.0, 50.0)
+            ax.set_ylim(-5.0, 1.0)
+        axs[-1][0].set_ylim(-50.0, 10.0)
+        axs[-1][1].set_ylim(-10.0, 50.0)
         fig.suptitle(f"EKO,{label} PTO={pto}")
     else:
         for ax in axs.flatten():
@@ -269,6 +285,12 @@ def cli() -> None:
         help="Compare (g)EKO vs. QCDNUM in a plot absolutely",
         action="store_true",
     )
+    # void
+    parser.add_argument(
+        "--plot-abs-void",
+        help="Show (g)EKO in a plot absolutely",
+        action="store_true",
+    )
 
     # prepare args
     args = parser.parse_args()
@@ -302,6 +324,8 @@ def cli() -> None:
         plot(pto_, EKODIR[pto_], GEKODIR[pto_], df_vs_qcdnum, _LABEL_QCDNUM, False)
     if args.plot_qcdnum:
         plot(pto_, EKODIR[pto_], GEKODIR[pto_], df_vs_qcdnum, _LABEL_QCDNUM, True)
+    if args.plot_abs_void:
+        plot(pto_, EKODIR[pto_], GEKODIR[pto_], df_vs_void, _LABEL_VOID, True)
 
 
 if __name__ == "__main__":
