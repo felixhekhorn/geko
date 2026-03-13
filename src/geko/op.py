@@ -238,8 +238,12 @@ def blowup(op: dict[int, np.ndarray], nf: int) -> np.ndarray:
     # The singlet coupling is Eq. 2.29 of :cite:`Moch:2001im`,
     ev[basis.index("S")] = NC * e2tot * op[_PID_S]
     ev[basis.index("g")] = NC * e2tot * op[21]
-    # but the non-singlet coupling is given by the quark contributions inside Sdelta
+    # but the non-singlet coupling is given by the quark contributions inside Sdelta:
+    # k transform the same as PDF, since it directly appear in DGLAP at the same level.
+    # Specifically, e.g., in nf=3: Sdelta = 2 u+ - d+ - s+
+    # which translates to: 2 eu2 - ed2 - ed2 = ↓
     ev[basis.index("Sdelta")] = NC * nfd * (eu2 - ed2) * op[_PID_NSP]
+    # the 2 which is hidden inside the `+` is taken care by k because it is for `NS+`
     res = np.linalg.inv(flavour_to_intrinsic_unified_evol) @ ev
     return res
 
