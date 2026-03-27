@@ -8,6 +8,7 @@ References
 """
 
 import argparse
+from itertools import cycle
 import pathlib
 from collections.abc import Callable
 
@@ -33,6 +34,17 @@ _LABEL_GRV = "GRV"
 _LABEL_QCDNUM = "QCDNUM"
 _LABEL_VOID = "void"
 
+# Use color-blind friendly palette from "https://sronpersonalpages.nl/~pault/"
+plot_colors = [
+    "#009988",
+    "#882255",
+    "#EE7733",
+    "#EE3377",
+    "#DDAA33",
+    "#33BBEE",
+    "#CC3311",
+    "#BBBBBB",
+]
 
 # check alpha_s
 def a_s_grv(q2: float, nf: int, lambda2: float, pto: int) -> float:
@@ -179,31 +191,37 @@ def plot(
     is_abs: bool = False,
 ) -> None:
     """Generate comparison plot EKO vs. GRV."""
-    pids = np.array([["u", "d"], ["s", "c"], ["S", "g"]])
+    pids = np.array([["S", "g"]])
     evolved = geko.apply_pdf_paths(GRV(pto), eko_path, pl_path)
-    fig, axs = plt.subplots(*pids.shape, sharex=True, figsize=(7, 7))
+    fig, axs = plt.subplots(*pids.shape, sharex=True, figsize=(8, 4),squeeze=False)
+    color_cycle = cycle(plot_colors)
     for axs_, pids_ in zip(axs, pids):
         for ax, pid in zip(axs_, pids_):
             keys = [*evolved.keys()]
             keys.sort()
+            color_cycle = cycle(plot_colors)
+
+            # assign ONE color per ep
+            ep_colors = {ep: next(color_cycle) for ep in keys}
             for ep in keys:
+                color = ep_colors[ep]
                 cmp_df = cmp(pto, evolved, ep, pid)
                 lab = (
-                    rf"$Q^2 = {ep[0]} \ \mathrm{{GeV}}^2,\ {ep[1]} \ n_f$"
-                    if pid == "u"
+                    rf"$Q^2 = {ep[0]} \ \mathrm{{GeV}}^2,\ n_f={ep[1]}$"
+                    if pid == "S"
                     else None
                 )
                 if is_abs:
-                    ax.plot(cmp_df["x"], cmp_df["eko"], label=lab)
-                    ax.plot(cmp_df["x"], cmp_df[label])
+                    ax.plot(cmp_df["x"], cmp_df["eko"], label=lab, color=color)
+                    ax.plot(cmp_df["x"], cmp_df[label], color=color)
                 else:
-                    ax.plot(cmp_df["x"], cmp_df["eko"] / cmp_df[label], label=lab)
+                    ax.plot(cmp_df["x"], cmp_df["eko"] / cmp_df[label], label=lab, color=color)
                 if lab is not None:
                     ax.legend(prop={"size": 9})
-            ax.set_title(f"{pid}")
+            ax.set_title(f"${pid.replace('S', '\\Sigma')}^\\gamma$")
             # TODO: add option for linear plot
             ax.set_xscale("log")
-            ax.set_xlim(1e-4, 1.0)
+            ax.set_xlim(1e-4, 0.9)
             # ax.set_xscale("log")
             # ax.set_xlim(.1, 1.0)
             ax.tick_params(
@@ -215,7 +233,7 @@ def plot(
                 right=True,
             )
     for ax in axs[-1]:
-        ax.set_xlabel("x")
+        ax.set_xlabel("x", fontsize=16)
     if is_abs:
         for ax in axs.flatten()[:4]:
             ax.set_ylim(-5.0, 1.0)
@@ -225,7 +243,7 @@ def plot(
     else:
         for ax in axs.flatten():
             ax.set_ylim(0.95, 1.05)
-        fig.suptitle(f"γEKO/{label} PTO={pto}")
+        fig.suptitle(f"γEKO/{label} {'N'*pto}LO")
     fig.tight_layout()
     abs_tag = "abs-" if is_abs else ""
     fig.savefig(_PLOTSDIR / f"{abs_tag}{label}-{pto}.pdf")
