@@ -8,9 +8,9 @@ References
 """
 
 import argparse
-from itertools import cycle
 import pathlib
 from collections.abc import Callable
+from itertools import cycle
 
 import eko.basis_rotation as br
 import grvphoton
@@ -45,6 +45,7 @@ plot_colors = [
     "#CC3311",
     "#BBBBBB",
 ]
+
 
 # check alpha_s
 def a_s_grv(q2: float, nf: int, lambda2: float, pto: int) -> float:
@@ -193,7 +194,7 @@ def plot(
     """Generate comparison plot EKO vs. GRV."""
     pids = np.array([["S", "g"]])
     evolved = geko.apply_pdf_paths(GRV(pto), eko_path, pl_path)
-    fig, axs = plt.subplots(*pids.shape, sharex=True, figsize=(8, 4),squeeze=False)
+    fig, axs = plt.subplots(*pids.shape, sharex=True, figsize=(8, 4), squeeze=False)
     color_cycle = cycle(plot_colors)
     for axs_, pids_ in zip(axs, pids):
         for ax, pid in zip(axs_, pids_):
@@ -215,7 +216,12 @@ def plot(
                     ax.plot(cmp_df["x"], cmp_df["eko"], label=lab, color=color)
                     ax.plot(cmp_df["x"], cmp_df[label], color=color)
                 else:
-                    ax.plot(cmp_df["x"], cmp_df["eko"] / cmp_df[label], label=lab, color=color)
+                    ax.plot(
+                        cmp_df["x"],
+                        cmp_df["eko"] / cmp_df[label],
+                        label=lab,
+                        color=color,
+                    )
                 if lab is not None:
                     ax.legend(prop={"size": 9})
             ax.set_title(f"${pid.replace('S', '\\Sigma')}^\\gamma$")
@@ -243,7 +249,7 @@ def plot(
     else:
         for ax in axs.flatten():
             ax.set_ylim(0.95, 1.05)
-        fig.suptitle(f"γEKO/{label} {'N'*pto}LO")
+        fig.suptitle(f"γEKO/{label} {'N' * pto}LO")
     fig.tight_layout()
     abs_tag = "abs-" if is_abs else ""
     fig.savefig(_PLOTSDIR / f"{abs_tag}{label}-{pto}.pdf")
