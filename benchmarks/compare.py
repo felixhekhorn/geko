@@ -224,7 +224,8 @@ def plot(
                     )
                 if lab is not None:
                     ax.legend(prop={"size": 9})
-            ax.set_title(f"${pid.replace('S', '\\Sigma')}^\\gamma$")
+            pid_lab = pid.replace("S", "\\Sigma")
+            ax.set_title(f"${pid_lab}^\\gamma$")
             # TODO: add option for linear plot
             ax.set_xscale("log")
             ax.set_xlim(1e-4, 0.9)
