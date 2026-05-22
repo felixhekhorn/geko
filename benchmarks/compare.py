@@ -24,6 +24,9 @@ from run import EKODIR, GEKODIR, operator_base
 
 import geko
 
+plt.rc("text", usetex=True)
+
+
 # Setup paths
 _HERE = pathlib.Path(__file__).parent
 _COMPAREDIR = _HERE / "compare"
@@ -217,11 +220,14 @@ def plot(
                 else:
                     ax.plot(cmp_df["x"], cmp_df["eko"] / cmp_df[label], label=lab, color=color)
                 if lab is not None:
-                    ax.legend(prop={"size": 9})
-            ax.set_title(f"${pid.replace('S', '\\Sigma')}^\\gamma$")
+                    ax.legend(frameon=False,prop={"size": 9})
+            title=f"${pid.replace('S', '\\Sigma')}^\\gamma \, {'\mathrm{{N}}'*pto}\mathrm{{LO}}$"
+            #title=r"$x^2+y^2 \ \mathrm{bla}$"
+            ax.text(0.05, 0.95, title, transform=ax.transAxes, fontsize=14, verticalalignment="top")
             # TODO: add option for linear plot
             ax.set_xscale("log")
             ax.set_xlim(1e-4, 0.9)
+            ax.tick_params(axis='both', labelsize=13)
             # ax.set_xscale("log")
             # ax.set_xlim(.1, 1.0)
             ax.tick_params(
@@ -233,17 +239,19 @@ def plot(
                 right=True,
             )
     for ax in axs[-1]:
-        ax.set_xlabel("x", fontsize=16)
+        ax.set_xlabel("$x$", fontsize=16)
     if is_abs:
         for ax in axs.flatten()[:4]:
             ax.set_ylim(-5.0, 1.0)
         axs[-1][0].set_ylim(-50.0, 10.0)
         axs[-1][1].set_ylim(-10.0, 50.0)
-        fig.suptitle(f"EKO,{label} PTO={pto}")
+        suptitle=f"EKO,{label} "
     else:
         for ax in axs.flatten():
             ax.set_ylim(0.95, 1.05)
-        fig.suptitle(f"γEKO/{label} {'N'*pto}LO")
+        suptitle=rf"$\gamma \mathrm{{EKO}}$/{label} $\,$"
+    fig.supylabel(suptitle, fontsize=12)
+    #ax.set_ylabel(suptitle, fontsize=12)
     fig.tight_layout()
     abs_tag = "abs-" if is_abs else ""
     fig.savefig(_PLOTSDIR / f"{abs_tag}{label}-{pto}.pdf")
