@@ -8,9 +8,9 @@ References
 """
 
 import argparse
-from itertools import cycle
 import pathlib
 from collections.abc import Callable
+from itertools import cycle
 
 import eko.basis_rotation as br
 import grvphoton
@@ -48,6 +48,7 @@ plot_colors = [
     "#CC3311",
     "#BBBBBB",
 ]
+
 
 # check alpha_s
 def a_s_grv(q2: float, nf: int, lambda2: float, pto: int) -> float:
@@ -196,7 +197,7 @@ def plot(
     """Generate comparison plot EKO vs. GRV."""
     pids = np.array([["S", "g"]])
     evolved = geko.apply_pdf_paths(GRV(pto), eko_path, pl_path)
-    fig, axs = plt.subplots(*pids.shape, sharex=True, figsize=(8, 4),squeeze=False)
+    fig, axs = plt.subplots(*pids.shape, sharex=True, figsize=(8, 4), squeeze=False)
     color_cycle = cycle(plot_colors)
     for axs_, pids_ in zip(axs, pids):
         for ax, pid in zip(axs_, pids_):
@@ -218,16 +219,33 @@ def plot(
                     ax.plot(cmp_df["x"], cmp_df["eko"], label=lab, color=color)
                     ax.plot(cmp_df["x"], cmp_df[label], color=color)
                 else:
-                    ax.plot(cmp_df["x"], cmp_df["eko"] / cmp_df[label], label=lab, color=color)
+                    ax.plot(
+                        cmp_df["x"],
+                        cmp_df["eko"] / cmp_df[label],
+                        label=lab,
+                        color=color,
+                    )
                 if lab is not None:
-                    ax.legend(frameon=False,prop={"size": 9})
-            title=f"${pid.replace('S', '\\Sigma')}^\\gamma \, {'\mathrm{{N}}'*pto}\mathrm{{LO}}$"
-            
-            ax.text(0.05, 0.95, title, transform=ax.transAxes, fontsize=14, verticalalignment="top")
+                    ax.legend(frameon=False, prop={"size": 9})
+            title = (
+                pid.replace("S", "\\Sigma")
+                + "^\\gamma \\, "
+                + ("\\mathrm{N}" * pto)
+                + "\\mathrm{LO}$"
+            )
+
+            ax.text(
+                0.05,
+                0.95,
+                title,
+                transform=ax.transAxes,
+                fontsize=14,
+                verticalalignment="top",
+            )
             # TODO: add option for linear plot
             ax.set_xscale("log")
             ax.set_xlim(1e-4, 0.9)
-            ax.tick_params(axis='both', labelsize=13)
+            ax.tick_params(axis="both", labelsize=13)
             # ax.set_xscale("log")
             # ax.set_xlim(.1, 1.0)
             ax.tick_params(
@@ -245,13 +263,13 @@ def plot(
             ax.set_ylim(-5.0, 1.0)
         axs[-1][0].set_ylim(-50.0, 10.0)
         axs[-1][1].set_ylim(-10.0, 50.0)
-        suptitle=f"EKO,{label} "
+        suptitle = f"EKO,{label} "
     else:
         for ax in axs.flatten():
             ax.set_ylim(0.95, 1.05)
-        suptitle=rf"$\gamma \mathrm{{EKO}}$/{label} $\,$"
+        suptitle = rf"$\gamma \mathrm{{EKO}}$/{label} $\,$"
     fig.supylabel(suptitle, fontsize=12)
-    #ax.set_ylabel(suptitle, fontsize=12)
+    # ax.set_ylabel(suptitle, fontsize=12)
     fig.tight_layout()
     abs_tag = "abs-" if is_abs else ""
     fig.savefig(_PLOTSDIR / f"{abs_tag}{label}-{pto}.pdf")
